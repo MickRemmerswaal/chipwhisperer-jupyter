@@ -1,4 +1,5 @@
 from cProfile import label
+from tabnanny import check
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
@@ -19,12 +20,11 @@ temp_label = all_label[0:8000]
 
 
 # Plot and print to check data
-'''
-plt.plot(traces[0])
-print(ptext[0])
-print(key)
-plt.show()
-'''
+
+plt.plot(temp_traces[0])
+print(temp_ptext[0])
+#plt.show(block=True)
+
 
 # Simple S-Box lookup table
 sbox=(
@@ -63,8 +63,6 @@ for i in range (len(temp_traces)):
     hw_trace_groups[hw].append(temp_traces[i])
 
 # POI selection, reducing the dimensionality => increases efficiency and speed
-
-
 means = [[] for _ in range(9)]
 var = [[] for _ in range(9)]
 counts = [[] for _ in range(9)]
@@ -85,7 +83,31 @@ for i in range(9):
 
 # select top-n coefficients to represent the POI's
 n_poi = 2
-relevant_indices = np.argsort(-coefficients)[:n_poi][::-1]
+sorted =np.argsort(-coefficients)
+relevant_indices = np.zeros(n_poi, dtype=np.int16)
+
+poi_spacing = 20 
+dist = 0
+
+for i in range(n_poi):
+    if i > 0:
+        check_idx = 1
+
+        while (dist <= poi_spacing):
+            last_poi = relevant_indices[i-1]
+            cur_poi = sorted[check_idx]
+            dist = np.abs(cur_poi - last_poi)
+            check_idx+=1
+
+        relevant_indices[i] = cur_poi
+        
+    else:
+        relevant_indices[0] = sorted[0]
+    
+    
+        
+
+
 print(relevant_indices)
 # Plot some traces to see their POI's
 fig, axs = plt.subplots(4, sharey=True)
@@ -94,7 +116,7 @@ axs[1].plot(temp_traces[1], '-go', markevery=relevant_indices, markersize=6, mar
 axs[2].plot(temp_traces[2], '-ro', markevery=relevant_indices, markersize=6, markerfacecolor='k')
 axs[3].plot(temp_traces[3], '-co', markevery=relevant_indices, markersize=6, markerfacecolor='k')
 
-#plt.show(block=True)
+plt.show(block=True)
 
 # Create templates of the selected POI's
 template_means = [np.array([]) for _ in range(9)]
@@ -130,7 +152,7 @@ print(actual_key)
 # Create 
 guess_proba = np.zeros(256)
 attack_byte = 1
-'''
+
 for i in range(len(atk_traces)):
     cur_trace = atk_traces[i, relevant_indices]
 
@@ -163,3 +185,4 @@ for j in range(len(atk_traces)):
     # Print our top 5 results so far
     # Best match on the right
     print(P_k.argsort()[-5:])
+    '''
