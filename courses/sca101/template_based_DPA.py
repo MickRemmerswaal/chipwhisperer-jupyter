@@ -1,9 +1,6 @@
-from cProfile import label
-from tabnanny import check
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
-from scipy import stats
 ####################################
 ### FIXED KEY TEMPLATE BASED DPA ###
 ####################################
@@ -47,9 +44,13 @@ sbox=(
 
 # Calculate intermediate value by lookup input XOR key for a certain byte index
 def intermediate_val(input, key, byte_idx=0):
-    return sbox[input[byte_idx] ^ key]
+    return sbox[input[byte_idx] ^ key[byte_idx]]
 
 HW = [bin(a).count("1") for a in range(256)]
+
+key = np.load(r'D:\School\Master\Vakken\Jaar 2\Thesis spul\ChipWhisperer\chipwhisperer-jupyter\courses\sca101\traces\lab4_2_key.npy')
+print(intermediate_val(temp_ptext[123], key,1))
+print(all_label[123])
 
 # Calculate Hamming weight of sbox output
 def get_hamming_weight(input, key, byte_idx=0):
@@ -104,9 +105,6 @@ for i in range(n_poi):
     else:
         relevant_indices[0] = sorted[0]
     
-    
-        
-
 
 print(relevant_indices)
 # Plot some traces to see their POI's
@@ -164,25 +162,3 @@ for i in range(len(atk_traces)):
         guess_proba[key] += np.log(proba_key_guess)
 
     print(np.argsort(guess_proba)[-5:])
-'''
-P_k = np.zeros(256)
-for j in range(len(atk_traces)):
-    # Grab key points and put them in a matrix
-    a = [atk_traces[j][relevant_indices[i]] for i in range(len(relevant_indices))]
-    
-    # Test each key
-    for k in range(256):
-        # Find HW coming out of sbox
-        hw = get_hamming_weight(atk_ptext[j], k, attack_byte)
-    
-        # Find p_{k,j}
-        rv = multivariate_normal(template_means[hw], template_cov_matrix[hw], allow_singular=False)
-        p_kj = rv.pdf(a)
-   
-        # Add it to running total
-        P_k[k] += np.log(p_kj)
-
-    # Print our top 5 results so far
-    # Best match on the right
-    print(P_k.argsort()[-5:])
-    '''
